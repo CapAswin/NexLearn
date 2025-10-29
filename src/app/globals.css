@@ -26,3 +26,7 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+.main-bg {
+  background-image: url(/src/assets/main_bg.jpg);
+}

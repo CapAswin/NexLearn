@@ -6,7 +6,7 @@ interface MainLayoutProps {
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   return (
-    <div className="w-screen h-screen bg-[url('/dark-nature-blue-abstract.jpg')] bg-no-repeat bg-center bg-cover font-['Inter'] relative">
+    <div className="w-screen h-screen bg-[url('/main_bg.jpg')] bg-no-repeat bg-center bg-cover font-['Inter'] relative">
       {children}
     </div>
   );
