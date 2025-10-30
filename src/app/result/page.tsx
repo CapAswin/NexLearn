@@ -12,9 +12,11 @@ const ResultPage = () => {
 
       <main className="flex flex-col items-center text-center mt-[7rem] px-4 w-full max-w-3xl">
         {/* Marks Box */}
-        <div className="bg-gradient-to-r from-[#0d7aa8] to-[#163445] rounded-[17.64px] shadow-md text-white w-[429px] h-[150px] relative">
-          <p className="text-sm mb-1 absolute top-0 left-0">Marks Obtained:</p>
-          <h1 className="absolute top-[68.61px] left-[60px] w-[301px] h-[49px] font-['Inter'] font-medium text-[68px] leading-[144%] tracking-normal opacity-100">
+        <div className="bg-gradient-to-r from-[#0d7aa8] to-[#163445] rounded-[17.64px] shadow-md text-white w-[429px] h-[150px] flex flex-col items-center justify-center text-center">
+          <p className="font-['Inter'] font-medium text-[18.81px] leading-none mb-2">
+            Marks Obtained:
+          </p>
+          <h1 className="font-['Inter'] font-medium text-[68px] leading-none">
             100 / 100
           </h1>
         </div>
