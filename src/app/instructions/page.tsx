@@ -4,11 +4,11 @@ import Header from "@/app/component/Header";
 
 const Instructions = () => {
   return (
-    <div className="min-h-screen bg-[#f2f8fa] flex flex-col items-center">
+    <div className="min-h-screen bg-[rgba(244,252,255,1)] flex flex-col items-center">
       <Header />
 
       {/* Main Content */}
-      <main className="flex flex-col items-center text-center mt-10 px-4 w-full max-w-3xl">
+      <main className="flex flex-col items-center text-center mt-[7rem] px-4 w-full max-w-3xl">
         <h2 className="text-2xl font-semibold text-[#1c2b3a] mb-6">
           Ancient Indian History MCQ
         </h2>
@@ -65,7 +65,7 @@ const Instructions = () => {
         </div>
 
         {/* Start Button */}
-        <button className="bg-[#1c2b3a] hover:bg-[#233b50] text-white px-8 py-3 rounded-lg text-lg font-medium transition">
+        <button className="bg-[#1c2b3a] hover:bg-[#233b50] text-white px-8 py-3 rounded-lg text-lg font-medium transition mb-5">
           Start Test
         </button>
       </main>
