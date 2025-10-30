@@ -1,8 +1,6 @@
 "use client";
 
-import React from "react";
-
-const LoginForm: React.FC = () => {
+const LoginForm = () => {
   return (
     <div className="flex flex-1 flex-col bg-white text-[#1c2b3a] m-2 rounded-lg p-4 sm:p-5 md:p-6 lg:p-7 xl:p-8 2xl:p-9 gap-3 sm:gap-4 justify-between transition-all duration-300">
       <div>

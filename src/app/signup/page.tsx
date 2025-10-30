@@ -2,16 +2,16 @@
 
 import MainLayout from "../component/mainLayOut";
 import AuthLayout from "../component/AuthLayout";
-import LoginForm from "../component/LoginForm";
+import SignUpForm from "../component/SignUpForm";
 
-const Login = () => {
+const SignUp = () => {
   return (
     <MainLayout>
       <AuthLayout>
-        <LoginForm />
+        <SignUpForm />
       </AuthLayout>
     </MainLayout>
   );
 };
 
-export default Login;
+export default SignUp;
