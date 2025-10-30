@@ -20,70 +20,89 @@ const ResultPage = () => {
         <div className="w-[429px]">
           {/* Details Section */}
           <div className="mt-8 space-y-3 text-gray-700 text-sm">
-            <div className="flex items-center gap-3">
-              {/* Icon box */}
-              <div className="w-[36px] h-[36px] bg-[#DDA428] rounded-md flex items-center justify-center">
-                <Image
-                  src={questionsVector}
-                  alt="Questions Icon"
-                  width={14}
-                  height={14}
-                  className="object-contain"
-                />
-              </div>
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-3">
+                {/* Icon box */}
+                <div className="w-[36px] h-[36px] bg-[#DDA428] rounded-md flex items-center justify-center">
+                  <Image
+                    src={questionsVector}
+                    alt="Questions Icon"
+                    width={14}
+                    height={14}
+                    className="object-contain"
+                  />
+                </div>
 
-              {/* Label */}
-              <p className="text-[18px] leading-none text-[#1C2B3A]">
-                Total Questions: <span className="font-semibold">100</span>
-              </p>
+                {/* Label */}
+                <p className="text-[18px] leading-none text-[#1C2B3A]">
+                  Total Questions:
+                </p>
+              </div>
+              <span className="text-[18px] leading-none text-[#1C2B3A] font-semibold">
+                100
+              </span>
             </div>
 
-            <div className="flex items-center gap-3">
-              <div className="w-[36px] h-[36px] bg-[#4caf50] rounded-md flex items-center justify-center">
-                <Image
-                  src={correctAnswerIcon}
-                  alt="Correct Answer Icon"
-                  width={14}
-                  height={14}
-                  className="object-contain"
-                />
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-3">
+                <div className="w-[36px] h-[36px] bg-[#4caf50] rounded-md flex items-center justify-center">
+                  <Image
+                    src={correctAnswerIcon}
+                    alt="Correct Answer Icon"
+                    width={14}
+                    height={14}
+                    className="object-contain"
+                  />
+                </div>
+                <p className="text-[18px] leading-none text-[#1C2B3A]">
+                  Correct Answers:
+                </p>
               </div>
-              <p className="text-[18px] leading-none text-[#1C2B3A]">
-                Correct Answers: <span className="font-semibold">003</span>
-              </p>
+              <span className="text-[18px] leading-none text-[#1C2B3A] font-semibold">
+                003
+              </span>
             </div>
-            <div className="flex items-center gap-3">
-              <div className="w-[36px] h-[36px] bg-[#e14e4e] rounded-md flex items-center justify-center">
-                <Image
-                  src={wrongAnswerIcon}
-                  alt="Incorrect Answer Icon"
-                  width={14}
-                  height={14}
-                  className="object-contain"
-                />
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-3">
+                <div className="w-[36px] h-[36px] bg-[#e14e4e] rounded-md flex items-center justify-center">
+                  <Image
+                    src={wrongAnswerIcon}
+                    alt="Incorrect Answer Icon"
+                    width={14}
+                    height={14}
+                    className="object-contain"
+                  />
+                </div>
+                <p className="text-[18px] leading-none text-[#1C2B3A]">
+                  Incorrect Answers:
+                </p>
               </div>
-              <p className="text-[18px] leading-none text-[#1C2B3A]">
-                Incorrect Answers: <span className="font-semibold">001</span>
-              </p>
+              <span className="text-[18px] leading-none text-[#1C2B3A] font-semibold">
+                001
+              </span>
             </div>
-            <div className="flex items-center gap-3">
-              <div className="w-[36px] h-[36px] bg-[#808080] rounded-md flex items-center justify-center">
-                <Image
-                  src={questionsVector}
-                  alt="Questions Icon"
-                  width={14}
-                  height={14}
-                  className="object-contain"
-                />
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-3">
+                <div className="w-[36px] h-[36px] bg-[#808080] rounded-md flex items-center justify-center">
+                  <Image
+                    src={questionsVector}
+                    alt="Questions Icon"
+                    width={14}
+                    height={14}
+                    className="object-contain"
+                  />
+                </div>
+                <p className="text-[18px] leading-none text-[#1C2B3A]">
+                  Not Attended Questions:
+                </p>
               </div>
-              <p className="text-[18px] leading-none text-[#1C2B3A]">
-                Not Attended Questions:{" "}
-                <span className="font-semibold">096</span>
-              </p>
+              <span className="text-[18px] leading-none text-[#1C2B3A] font-semibold">
+                096
+              </span>
             </div>
           </div>
           {/* Button */}
-          <button className="mt-8 bg-[#163445] text-white px-8 py-2 rounded-md hover:bg-[#0d2c3d] transition">
+          <button className="mt-8 bg-[#163445] text-white w-[429px] h-[48px] rounded-[10px] opacity-100 hover:bg-[#0d2c3d] transition">
             Done
           </button>
         </div>
