@@ -2,38 +2,75 @@
 import Header from "@/app/component/Header";
 import Image from "next/image";
 import React, { useState, useEffect } from "react";
-import questionImg from "@/assets/QuestionsVector.png";
+import { listQuestions } from "@/api/exam";
+import { ListQuestionsResponse, Question } from "@/types";
 
 const ExamInterface = () => {
-  const [currentQuestion, setCurrentQuestion] = useState(1);
-  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
-  const [timeLeft, setTimeLeft] = useState(87 * 60 + 13); // 87 minutes 13 seconds in seconds
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
+  const [timeLeft, setTimeLeft] = useState(0);
   const [questionStatuses, setQuestionStatuses] = useState<
-    Record<number, "not-attended" | "attended" | "marked" | "answered-marked">
-  >({
-    1: "attended",
-    2: "attended",
-    3: "attended",
-    4: "attended",
-    5: "not-attended",
-    6: "marked",
-  });
+    Record<
+      number,
+      "not-attended" | "attended" | "marked" | "answered-marked" | "visited"
+    >
+  >({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [examData, setExamData] = useState<ListQuestionsResponse | null>(null);
+
+  // Fetch questions on mount
+  useEffect(() => {
+    const fetchQuestions = async () => {
+      try {
+        const response: ListQuestionsResponse = await listQuestions();
+        setExamData(response);
+        if (response.success) {
+          setQuestions(response.questions);
+          setTimeLeft(response.total_time * 60); // Convert minutes to seconds
+          // Initialize question statuses
+          const initialStatuses: Record<
+            number,
+            | "not-attended"
+            | "attended"
+            | "marked"
+            | "answered-marked"
+            | "visited"
+          > = {};
+          response.questions.forEach((_, index) => {
+            initialStatuses[index] = "not-attended";
+          });
+          setQuestionStatuses(initialStatuses);
+        } else {
+          setError("Failed to load questions");
+        }
+      } catch (err) {
+        setError("Failed to load questions");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchQuestions();
+  }, []);
 
   // Timer effect
   useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          // Handle exam timeout
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
+    if (timeLeft > 0) {
+      const timer = setInterval(() => {
+        setTimeLeft((prev) => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            // Handle exam timeout
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
 
-    return () => clearInterval(timer);
-  }, []);
+      return () => clearInterval(timer);
+    }
+  }, [timeLeft]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -43,8 +80,8 @@ const ExamInterface = () => {
       .padStart(2, "0")}`;
   };
 
-  const handleAnswerSelect = (option: string) => {
-    setSelectedAnswer(option);
+  const handleAnswerSelect = (optionId: number) => {
+    setSelectedAnswer(optionId);
     setQuestionStatuses((prev) => ({
       ...prev,
       [currentQuestion]: "attended",
@@ -59,14 +96,14 @@ const ExamInterface = () => {
   };
 
   const handleNext = () => {
-    if (currentQuestion < 100) {
+    if (currentQuestion < questions.length - 1) {
       setCurrentQuestion((prev) => prev + 1);
       setSelectedAnswer(null);
     }
   };
 
   const handlePrevious = () => {
-    if (currentQuestion > 1) {
+    if (currentQuestion > 0) {
       setCurrentQuestion((prev) => prev - 1);
       setSelectedAnswer(null);
     }
@@ -75,13 +112,15 @@ const ExamInterface = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "attended":
-        return "bg-[#4CAF50]";
+        return "bg-[#4CAF50] text-white";
       case "not-attended":
-        return "bg-[#E14E4E]";
+        return "bg-white text-[#1C2B3A] border border-[#CECECE]";
+      case "visited":
+        return "bg-[#EE3535] text-white";
       case "marked":
-        return "bg-[#7E1FA4]";
+        return "bg-[#7E1FA4] text-white";
       case "answered-marked":
-        return "bg-[#808080]";
+        return "bg-[#808080] text-white";
       default:
         return "bg-[#D6E2E8] text-[#1C2B3A]";
     }
@@ -98,10 +137,11 @@ const ExamInterface = () => {
           <div>
             <div className="flex justify-between items-center mb-4">
               <h1 className="text-[#1C2B3A] font-semibold text-lg">
-                Ancient Indian History MCQ
+                {examData?.instruction || "Exam"}
               </h1>
               <p className="text-sm font-medium text-[#1C2B3A]">
-                {currentQuestion.toString().padStart(2, "0")}/100
+                {(currentQuestion + 1).toString().padStart(2, "0")}/
+                {questions.length}
               </p>
             </div>
             <div className="flex-1 bg-white rounded-lg shadow-sm p-5">
@@ -117,15 +157,11 @@ const ExamInterface = () => {
                   Question
                 </h3>
                 <p className="text-[#1C2B3A] text-base font-medium mb-4">
-                  {currentQuestion}. Identify the site shown in the image below,
-                  which is one of the major urban centers of the Indus Valley
-                  Civilization.
+                  {currentQuestion + 1}.{" "}
+                  {questions[currentQuestion]?.question_text ||
+                    "Loading question..."}
                 </p>
-                <Image
-                  src={questionImg}
-                  alt="Question Image"
-                  className="rounded-md w-full h-auto object-cover max-h-32"
-                />
+                {/* Assuming no image for now, remove Image component */}
               </div>
             </div>
             {/* Options Section */}
@@ -138,36 +174,37 @@ const ExamInterface = () => {
                   fontSize: "14px",
                   lineHeight: "100%",
                   letterSpacing: "0%",
+                  width: "132px",
+                  height: "10px",
+                  verticalAlign: "middle",
                 }}
               >
                 Choose the answer:
               </p>
               <div className="space-y-3">
-                {["Pataliputra", "Harappa", "Mohenjo-Daro", "Lothal"].map(
-                  (option, i) => (
-                    <label
-                      key={i}
-                      className={`flex items-center justify-between rounded-lg px-4 py-3 cursor-pointer transition-all bg-white ${
-                        selectedAnswer === option
-                          ? "border-[#0D7AA8]"
-                          : "border-[#D6E2E8] hover:border-[#0D7AA8]"
-                      }`}
-                      style={{ borderWidth: "1px" }}
-                      onClick={() => handleAnswerSelect(option)}
-                    >
-                      <span className="text-[#1C2B3A] font-medium">
-                        {String.fromCharCode(65 + i)}. {option}
-                      </span>
-                      <input
-                        type="radio"
-                        name="answer"
-                        checked={selectedAnswer === option}
-                        onChange={() => handleAnswerSelect(option)}
-                        className="accent-[#0D7AA8] w-4 h-4"
-                      />
-                    </label>
-                  )
-                )}
+                {questions[currentQuestion]?.options.map((option, i) => (
+                  <label
+                    key={option.id}
+                    className={`flex items-center justify-between rounded-lg px-4 py-3 cursor-pointer transition-all bg-white ${
+                      selectedAnswer === option.id
+                        ? "border-[#0D7AA8] bg-[#EAF6FB]"
+                        : "border-[#D6E2E8] hover:border-[#0D7AA8]"
+                    }`}
+                    style={{ borderWidth: "1px" }}
+                    onClick={() => handleAnswerSelect(option.id)}
+                  >
+                    <span className="text-[#1C2B3A] font-medium">
+                      {String.fromCharCode(65 + i)}. {option.option_text}
+                    </span>
+                    <input
+                      type="radio"
+                      name="answer"
+                      checked={selectedAnswer === option.id}
+                      onChange={() => handleAnswerSelect(option.id)}
+                      className="accent-[#0D7AA8] w-4 h-4"
+                    />
+                  </label>
+                ))}
               </div>
             </div>
 
@@ -181,14 +218,14 @@ const ExamInterface = () => {
               </button>
               <button
                 onClick={handlePrevious}
-                disabled={currentQuestion === 1}
+                disabled={currentQuestion === 0}
                 className="flex-1 bg-[#D6E2E8] text-[#1C2B3A] py-3 rounded-md font-medium hover:bg-[#c0d4dd] transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Previous
               </button>
               <button
                 onClick={handleNext}
-                disabled={currentQuestion === 100}
+                disabled={currentQuestion === questions.length - 1}
                 className="flex-1 bg-[#163445] text-white py-3 rounded-md font-medium hover:bg-[#0d2c3d] transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Next
@@ -222,20 +259,28 @@ const ExamInterface = () => {
             </div>
             {/* Question Grid */}
             <div className="grid grid-cols-10 gap-2 text-sm font-medium mb-4">
-              {[...Array(100)].map((_, i) => {
+              {questions.map((_, i) => {
                 const questionNumber = i + 1;
-                const status =
-                  questionStatuses[questionNumber] || "not-attended";
+                const status = questionStatuses[i] || "not-attended";
                 return (
                   <button
                     key={i}
                     onClick={() => {
-                      setCurrentQuestion(questionNumber);
+                      setCurrentQuestion(i);
                       setSelectedAnswer(null);
+                      if (
+                        !questionStatuses[i] ||
+                        questionStatuses[i] === "not-attended"
+                      ) {
+                        setQuestionStatuses((prev) => ({
+                          ...prev,
+                          [i]: "visited",
+                        }));
+                      }
                     }}
-                    className={`w-7 h-7 flex items-center justify-center rounded-md text-white text-xs font-bold transition-all hover:scale-110 ${
-                      questionNumber === currentQuestion
-                        ? "ring-2 ring-[#0D7AA8] ring-offset-1"
+                    className={`w-7 h-7 flex items-center justify-center rounded-md text-xs font-bold transition-all hover:scale-110 ${
+                      i === currentQuestion
+                        ? "ring-4 ring-[#800080] ring-offset-1"
                         : ""
                     } ${getStatusColor(status)}`}
                   >

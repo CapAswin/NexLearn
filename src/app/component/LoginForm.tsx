@@ -1,6 +1,38 @@
 "use client";
 
+import { useState } from "react";
+import { sendOtp } from "../../api/auth";
+import { SendOtpResponse } from "../../types";
+
 const LoginForm = () => {
+  const [mobile, setMobile] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSendOtp = async () => {
+    if (!mobile || mobile.length !== 10) {
+      setError("Please enter a valid 10-digit mobile number");
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response: SendOtpResponse = await sendOtp(mobile);
+      if (response.success) {
+        // Handle success - maybe navigate to OTP verification
+        alert("OTP sent successfully!");
+      } else {
+        setError(response.message);
+      }
+    } catch (err) {
+      setError("Failed to send OTP. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="flex flex-1 flex-col bg-white text-[#1c2b3a] m-2 rounded-lg p-4 sm:p-5 md:p-6 lg:p-7 xl:p-8 2xl:p-9 gap-3 sm:gap-4 justify-between transition-all duration-300">
       <div>
@@ -21,9 +53,17 @@ const LoginForm = () => {
           <input
             type="text"
             placeholder="1234 567891"
+            value={mobile}
+            onChange={(e) =>
+              setMobile(e.target.value.replace(/\D/g, "").slice(0, 10))
+            }
             className="flex-1 outline-none ml-1 sm:ml-2 text-gray-800 text-xs sm:text-sm bg-transparent transition-all duration-300"
           />
         </div>
+
+        {error && (
+          <p className="text-red-500 text-xs sm:text-sm mb-2">{error}</p>
+        )}
 
         <p
           className="text-gray-500 mt-2 sm:mt-3 transition-all duration-300"
@@ -48,10 +88,11 @@ const LoginForm = () => {
       </div>
 
       <button
-        type="submit"
-        className="w-full bg-[#1c2b3a] hover:bg-[#233b50] text-white font-medium rounded-lg py-1 sm:py-2 md:py-3 mt-3 sm:mt-4 md:mt-6 transition-all duration-300 text-sm sm:text-base"
+        onClick={handleSendOtp}
+        disabled={loading}
+        className="w-full bg-[#1c2b3a] hover:bg-[#233b50] disabled:bg-gray-400 text-white font-medium rounded-lg py-1 sm:py-2 md:py-3 mt-3 sm:mt-4 md:mt-6 transition-all duration-300 text-sm sm:text-base"
       >
-        Get Started
+        {loading ? "Sending..." : "Get Started"}
       </button>
     </div>
   );

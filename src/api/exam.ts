@@ -1,24 +1,14 @@
 import axiosInstance from "./axiosInstance";
-import { Question, SubmitAnswersResponse } from "../types";
+import { ListQuestionsResponse, SubmitAnswersResponse, Answer } from "../types";
 
-export const getExamQuestions = async (examId: string): Promise<Question[]> => {
-  const response = await axiosInstance.get(`/exam/${examId}/questions`);
+export const listQuestions = async (): Promise<ListQuestionsResponse> => {
+  const response = await axiosInstance.get("/question/list");
   return response.data;
 };
 
-export const submitExam = async (
-  examId: string,
-  answers: Record<string, string>
-) => {
-  const response = await axiosInstance.post(`/exam/${examId}/submit`, {
-    answers,
-  });
-  return response.data;
-};
-
-export const getExamResults = async (
-  examId: string
+export const submitAnswers = async (
+  answers: Answer[]
 ): Promise<SubmitAnswersResponse> => {
-  const response = await axiosInstance.get(`/exam/${examId}/results`);
+  const response = await axiosInstance.post("/answers/submit", { answers });
   return response.data;
 };
