@@ -1,7 +1,9 @@
 import axiosInstance from "./axiosInstance";
+import { SendOtpPayload } from "../types";
 
-export const sendOtp = async (mobile: string) => {
-  const response = await axiosInstance.post("/auth/send-otp", { mobile });
+export const sendOtp = async (mobile: string, country_code: string) => {
+  const payload: SendOtpPayload = { mobile, country_code };
+  const response = await axiosInstance.post("/auth/send-otp", payload);
   return response.data;
 };
 
@@ -24,5 +26,6 @@ export const createProfile = async (formData: FormData) => {
 
 export const logout = async () => {
   const response = await axiosInstance.post("/auth/logout");
+  localStorage.removeItem("access_token");
   return response.data;
 };

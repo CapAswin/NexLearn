@@ -3,11 +3,14 @@
 import { useState } from "react";
 import { sendOtp } from "../../api/auth";
 import { SendOtpResponse } from "../../types";
+import OtpForm from "./OtpForm";
 
 const LoginForm = () => {
   const [mobile, setMobile] = useState("");
+  const [countryCode, setCountryCode] = useState("+91");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showOtp, setShowOtp] = useState(false);
 
   const handleSendOtp = async () => {
     if (!mobile || mobile.length !== 10) {
@@ -19,10 +22,9 @@ const LoginForm = () => {
     setError(null);
 
     try {
-      const response: SendOtpResponse = await sendOtp(mobile);
+      const response: SendOtpResponse = await sendOtp(mobile, countryCode);
       if (response.success) {
-        // Handle success - maybe navigate to OTP verification
-        alert("OTP sent successfully!");
+        setShowOtp(true);
       } else {
         setError(response.message);
       }
@@ -32,6 +34,16 @@ const LoginForm = () => {
       setLoading(false);
     }
   };
+
+  if (showOtp) {
+    return (
+      <OtpForm
+        mobile={mobile}
+        countryCode={countryCode}
+        onBack={() => setShowOtp(false)}
+      />
+    );
+  }
 
   return (
     <div className="flex flex-1 flex-col bg-white text-[#1c2b3a] m-2 rounded-lg p-4 sm:p-5 md:p-6 lg:p-7 xl:p-8 2xl:p-9 gap-3 sm:gap-4 justify-between transition-all duration-300">
@@ -47,9 +59,13 @@ const LoginForm = () => {
           Phone number
         </label>
         <div className="flex items-center border border-gray-300 rounded-lg px-2 sm:px-3 py-1 sm:py-2 focus-within:ring-2 focus-within:ring-[#1c2b3a] mb-2 sm:mb-3 transition-all duration-300">
-          <span className="text-gray-700 text-xs sm:text-sm flex items-center gap-1 transition-all duration-300">
-            🇮🇳 +91
-          </span>
+          <input
+            type="text"
+            placeholder="+91"
+            value={countryCode}
+            onChange={(e) => setCountryCode(e.target.value)}
+            className="w-12 outline-none text-gray-800 text-xs sm:text-sm bg-transparent transition-all duration-300"
+          />
           <input
             type="text"
             placeholder="1234 567891"
