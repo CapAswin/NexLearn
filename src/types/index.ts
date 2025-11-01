@@ -101,6 +101,9 @@ export interface SubmitAnswersResponse {
   details: QuestionDetail[];
 }
 
+export interface SendOtpPayload {
+  mobile: string;
+}
 // ✅ Error Type (Optional)
 export interface ApiError {
   success: false;

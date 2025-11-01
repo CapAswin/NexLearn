@@ -3,13 +3,73 @@
 import Image from "next/image";
 import React, { ChangeEvent, useState } from "react";
 import { Upload } from "lucide-react";
+import { createProfile } from "../../api/auth";
+import { CreateProfileResponse } from "../../types";
+import { useRouter, useSearchParams } from "next/navigation";
 
 const SignUpForm = () => {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const mobile = searchParams.get("mobile") || "";
+  const countryCode = searchParams.get("countryCode") || "";
   const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [qualification, setQualification] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleImageUpload = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) setProfileImage(URL.createObjectURL(file));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name || !qualification || !email || !mobile) {
+      setError("Name, email, qualification, and mobile are required");
+      return;
+    }
+
+    if (!profileImage) {
+      setError("Profile image is required");
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("mobile", mobile);
+      formData.append("name", name);
+      formData.append("email", email);
+      formData.append("qualification", qualification);
+      const fileInput = document.getElementById(
+        "profile-upload"
+      ) as HTMLInputElement;
+      const file = fileInput?.files?.[0];
+      if (file) {
+        formData.append("profile_image", file);
+      }
+
+      const response: CreateProfileResponse = await createProfile(formData);
+      if (response.success) {
+        // Store tokens
+        if (typeof window !== "undefined") {
+          localStorage.setItem("access_token", response.access_token);
+          localStorage.setItem("refresh_token", response.refresh_token);
+        }
+        alert("Profile created successfully!");
+        router.push("/exam"); // Navigate to exam page
+      } else {
+        setError(response.message);
+      }
+    } catch (err) {
+      setError("Failed to create profile. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -52,7 +112,11 @@ const SignUpForm = () => {
         </div>
 
         {/* Form Fields with fieldset + legend */}
-        <form className="w-full flex flex-col gap-4">
+        <form
+          id="signup-form"
+          onSubmit={handleSubmit}
+          className="w-full flex flex-col gap-4"
+        >
           <fieldset className="border border-gray-300 rounded-[8px] px-4 py-2">
             <legend className="text-sm font-medium text-gray-700">
               Name<span className="text-red-500">*</span>
@@ -60,15 +124,21 @@ const SignUpForm = () => {
             <input
               type="text"
               placeholder="Enter your Full Name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
               className="w-full outline-none text-gray-700 placeholder-gray-400"
             />
           </fieldset>
 
           <fieldset className="border border-gray-300 rounded-[8px] px-4 py-2">
-            <legend className="text-sm font-medium text-gray-700">Email</legend>
+            <legend className="text-sm font-medium text-gray-700">
+              Email<span className="text-red-500">*</span>
+            </legend>
             <input
               type="email"
               placeholder="Enter your Email Address"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="w-full outline-none text-gray-700 placeholder-gray-400"
             />
           </fieldset>
@@ -80,14 +150,22 @@ const SignUpForm = () => {
             <input
               type="text"
               placeholder="Enter your Qualification"
+              value={qualification}
+              onChange={(e) => setQualification(e.target.value)}
               className="w-full outline-none text-gray-700 placeholder-gray-400"
             />
           </fieldset>
         </form>
       </div>
 
-      <button className="w-full bg-[#1c2b3a] hover:bg-[#233b50] text-white font-medium rounded-lg py-2 md:py-3 mt-4 transition-all duration-300 text-sm sm:text-base">
-        Get Started
+      {error && <p className="text-red-500 text-sm">{error}</p>}
+      <button
+        type="submit"
+        form="signup-form"
+        disabled={loading}
+        className="w-full bg-[#1c2b3a] hover:bg-[#233b50] disabled:bg-gray-400 text-white font-medium rounded-lg py-2 md:py-3 mt-4 transition-all duration-300 text-sm sm:text-base"
+      >
+        {loading ? "Creating Profile..." : "Get Started"}
       </button>
     </div>
   );

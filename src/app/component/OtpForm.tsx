@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { verifyOtp } from "../../api/auth";
+import { useRouter } from "next/navigation";
+import { verifyOtp, sendOtp } from "../../api/auth";
 import { VerifyOtpResponse } from "../../types";
 
 interface OtpFormProps {
@@ -11,6 +12,7 @@ interface OtpFormProps {
 }
 
 const OtpForm: React.FC<OtpFormProps> = ({ mobile, countryCode, onBack }) => {
+  const router = useRouter();
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -26,10 +28,20 @@ const OtpForm: React.FC<OtpFormProps> = ({ mobile, countryCode, onBack }) => {
     setError(null);
 
     try {
-      const response: VerifyOtpResponse = await verifyOtp(mobile, code);
-      if (response.success && response.login) {
-        // Handle success - maybe navigate to dashboard or profile
-        alert("Login successful!");
+      const response: VerifyOtpResponse = await verifyOtp(
+        mobile,
+        countryCode,
+        code
+      );
+      if (response.success) {
+        if (response.login) {
+          // Handle success - navigate to exam
+          alert("Login successful!");
+          router.push("/exam");
+        } else {
+          // Navigate to signup with mobile and countryCode
+          router.push(`/signup?mobile=${mobile}&countryCode=${countryCode}`);
+        }
       } else {
         setError(response.message);
       }
@@ -37,6 +49,16 @@ const OtpForm: React.FC<OtpFormProps> = ({ mobile, countryCode, onBack }) => {
       setError("Failed to verify OTP. Please try again.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    setError(null);
+    try {
+      await sendOtp(mobile, countryCode);
+      alert("OTP sent successfully!");
+    } catch (err) {
+      setError("Failed to resend OTP. Please try again.");
     }
   };
 
@@ -83,6 +105,7 @@ const OtpForm: React.FC<OtpFormProps> = ({ mobile, countryCode, onBack }) => {
         {/* Resend Code */}
         <button
           type="button"
+          onClick={handleResendOtp}
           className="text-[14px] font-medium text-[#111827] underline hover:text-[#374151] w-fit"
         >
           Resend code

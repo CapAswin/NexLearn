@@ -3,14 +3,12 @@
 import { useState } from "react";
 import { sendOtp } from "../../api/auth";
 import { SendOtpResponse } from "../../types";
-import OtpForm from "./OtpForm";
 
 const LoginForm = () => {
   const [mobile, setMobile] = useState("");
   const [countryCode, setCountryCode] = useState("+91");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showOtp, setShowOtp] = useState(false);
 
   const handleSendOtp = async () => {
     if (!mobile || mobile.length !== 10) {
@@ -24,26 +22,20 @@ const LoginForm = () => {
     try {
       const response: SendOtpResponse = await sendOtp(mobile, countryCode);
       if (response.success) {
-        setShowOtp(true);
+        // Navigate to OTP page with mobile and countryCode (encode to preserve '+')
+        window.location.href = `/otp?mobile=${encodeURIComponent(
+          mobile
+        )}&countryCode=${encodeURIComponent(countryCode)}`;
       } else {
         setError(response.message);
       }
     } catch (err) {
+      console.error(err);
       setError("Failed to send OTP. Please try again.");
     } finally {
       setLoading(false);
     }
   };
-
-  if (showOtp) {
-    return (
-      <OtpForm
-        mobile={mobile}
-        countryCode={countryCode}
-        onBack={() => setShowOtp(false)}
-      />
-    );
-  }
 
   return (
     <div className="flex flex-1 flex-col bg-white text-[#1c2b3a] m-2 rounded-lg p-4 sm:p-5 md:p-6 lg:p-7 xl:p-8 2xl:p-9 gap-3 sm:gap-4 justify-between transition-all duration-300">
