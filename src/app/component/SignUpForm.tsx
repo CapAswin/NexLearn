@@ -41,11 +41,12 @@ const SignUpForm = () => {
 
     try {
       const formData = new FormData();
+      console.log("countryCode: ", countryCode);
       const normalizedCountry = countryCode
         ? countryCode.startsWith("+")
           ? countryCode.trim()
           : "+" + countryCode.trim()
-        : "+91"; // Default to +91 if no country code
+        : "+91";
       const fullMobile = `${normalizedCountry}${mobile.trim()}`;
       formData.append("mobile", fullMobile);
       formData.append("name", name);
@@ -59,25 +60,14 @@ const SignUpForm = () => {
         formData.append("profile_image", file);
       }
 
-      // Debug: log FormData entries before sending
-      console.log("[client] createProfile formData entries:");
-      for (const [k, v] of formData.entries()) {
-        if (v instanceof File) {
-          console.log(k, { name: v.name, type: v.type, size: v.size });
-        } else {
-          console.log(k, v);
-        }
-      }
-
       const response: CreateProfileResponse = await createProfile(formData);
       if (response.success) {
-        // Store tokens
         if (typeof window !== "undefined") {
           localStorage.setItem("access_token", response.access_token);
           localStorage.setItem("refresh_token", response.refresh_token);
         }
         alert("Profile created successfully!");
-        router.push("/exam"); // Navigate to exam page
+        router.push("/instructions");
       } else {
         setError(response.message);
       }
@@ -96,7 +86,6 @@ const SignUpForm = () => {
       </h3>
 
       <div className="overflow-auto scrollbar-hide">
-        {/* Profile Upload */}
         <div className="flex justify-center mb-6">
           <label
             htmlFor="profile-upload"
@@ -128,7 +117,6 @@ const SignUpForm = () => {
           </label>
         </div>
 
-        {/* Form Fields with fieldset + legend */}
         <form
           id="signup-form"
           onSubmit={handleSubmit}

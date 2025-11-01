@@ -15,6 +15,7 @@ const OtpForm: React.FC<OtpFormProps> = ({ mobile, countryCode, onBack }) => {
   const router = useRouter();
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -45,7 +46,7 @@ const OtpForm: React.FC<OtpFormProps> = ({ mobile, countryCode, onBack }) => {
       } else {
         setError(response.message);
       }
-    } catch (err) {
+    } catch {
       setError("Failed to verify OTP. Please try again.");
     } finally {
       setLoading(false);
@@ -54,11 +55,16 @@ const OtpForm: React.FC<OtpFormProps> = ({ mobile, countryCode, onBack }) => {
 
   const handleResendOtp = async () => {
     setError(null);
+    setResendLoading(true);
+    // Clear the OTP input when resending
+    setCode("");
     try {
       await sendOtp(mobile, countryCode);
       alert("OTP sent successfully!");
-    } catch (err) {
+    } catch {
       setError("Failed to resend OTP. Please try again.");
+    } finally {
+      setResendLoading(false);
     }
   };
 
@@ -102,13 +108,17 @@ const OtpForm: React.FC<OtpFormProps> = ({ mobile, countryCode, onBack }) => {
           to arrive.
         </p>
 
+        {/* Error message (if any) */}
+        {error && <p className="text-red-500 text-sm">{error}</p>}
+
         {/* Resend Code */}
         <button
           type="button"
           onClick={handleResendOtp}
-          className="text-[14px] font-medium text-[#111827] underline hover:text-[#374151] w-fit"
+          disabled={resendLoading}
+          className="text-[14px] font-medium text-[#111827] underline hover:text-[#374151] w-fit disabled:text-gray-400"
         >
-          Resend code
+          {resendLoading ? "Resending..." : "Resend code"}
         </button>
       </div>
 

@@ -2,11 +2,11 @@ import axiosInstance from "./axiosInstance";
 
 export const sendOtp = async (mobile: string, country_code: string) => {
   try {
-    // Normalize to a digits-only full mobile number (remove '+' from country code)
-    // Ensure country code doesn't include '+' when sending to backend
-    const normalizedCountry = country_code.trim();
-    const fullMobile = `${normalizedCountry}${mobile.trim()}`; // e.g., 919876543210
-    console.log(country_code, mobile, fullMobile, "///");
+    // Ensure the country code includes '+' when sending to backend
+    const normalizedCountry = country_code.startsWith("+")
+      ? country_code.trim()
+      : `+${country_code.trim()}`;
+    const fullMobile = `${normalizedCountry}${mobile.trim()}`; // e.g., +919876543210
 
     // Use FormData to match server route which expects multipart/form-data
     const formData = new FormData();

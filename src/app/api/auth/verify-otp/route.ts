@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { axiosInstance } from "@/lib/axios";
 import axios from "axios";
+import axiosInstance from "@/lib/axios";
 import type { AuthResponse } from "@/types/api";
 
 export async function POST(req: Request) {
@@ -16,18 +16,19 @@ export async function POST(req: Request) {
       );
     }
 
-    // Forward mobile and otp as JSON to backend. Preserve '+' in mobile.
-    const mobileStr = String(mobile);
-    const otpStr = String(otp);
+    // Send to backend as FormData
+    const backendForm = new FormData();
+    backendForm.append("mobile", String(mobile));
+    backendForm.append("otp", String(otp));
+
     const response = await axiosInstance.post<AuthResponse>(
       "/auth/verify-otp",
+      backendForm,
       {
-        mobile: mobileStr,
-        otp: otpStr,
+        headers: { "Content-Type": "multipart/form-data" },
       }
     );
 
-    // If successful and tokens exist, return all data
     return NextResponse.json(response.data);
   } catch (error) {
     if (axios.isAxiosError(error)) {

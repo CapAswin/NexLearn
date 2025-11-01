@@ -22,10 +22,18 @@ const OtpPage = () => {
     mobile = mobile.substring(2);
   }
 
+  const handleBack = () => {
+    window.history.back();
+  };
+
   return (
     <MainLayout>
       <AuthLayout>
-        <OtpForm mobile={mobile} countryCode={countryCode} onBack={() => {}} />
+        <OtpForm
+          mobile={mobile}
+          countryCode={countryCode}
+          onBack={handleBack}
+        />
       </AuthLayout>
     </MainLayout>
   );
