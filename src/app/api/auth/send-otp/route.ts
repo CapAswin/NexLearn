@@ -15,11 +15,17 @@ export async function POST(req: Request) {
       );
     }
 
-    // Forward only the mobile as JSON to backend. Preserve '+' if present.
-    const mobileStr = String(mobile);
-    const response = await axiosInstance.post<AuthResponse>("/auth/send-otp", {
-      mobile: mobileStr,
-    });
+    // Convert to string and send as FormData (API requires multipart/form-data)
+    const backendForm = new FormData();
+    backendForm.append("mobile", String(mobile));
+
+    const response = await axiosInstance.post<AuthResponse>(
+      "/auth/send-otp",
+      backendForm,
+      {
+        headers: { "Content-Type": "multipart/form-data" },
+      }
+    );
 
     return NextResponse.json(response.data);
   } catch (error) {
@@ -33,7 +39,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // Fallback for unexpected errors
     return NextResponse.json(
       { success: false, message: "An unexpected error occurred" },
       { status: 500 }
