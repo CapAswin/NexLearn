@@ -41,7 +41,13 @@ const SignUpForm = () => {
 
     try {
       const formData = new FormData();
-      formData.append("mobile", mobile);
+      const normalizedCountry = countryCode
+        ? countryCode.startsWith("+")
+          ? countryCode.trim()
+          : "+" + countryCode.trim()
+        : "+91"; // Default to +91 if no country code
+      const fullMobile = `${normalizedCountry}${mobile.trim()}`;
+      formData.append("mobile", fullMobile);
       formData.append("name", name);
       formData.append("email", email);
       formData.append("qualification", qualification);
@@ -51,6 +57,16 @@ const SignUpForm = () => {
       const file = fileInput?.files?.[0];
       if (file) {
         formData.append("profile_image", file);
+      }
+
+      // Debug: log FormData entries before sending
+      console.log("[client] createProfile formData entries:");
+      for (const [k, v] of formData.entries()) {
+        if (v instanceof File) {
+          console.log(k, { name: v.name, type: v.type, size: v.size });
+        } else {
+          console.log(k, v);
+        }
       }
 
       const response: CreateProfileResponse = await createProfile(formData);
@@ -66,6 +82,7 @@ const SignUpForm = () => {
         setError(response.message);
       }
     } catch (err) {
+      console.error(err);
       setError("Failed to create profile. Please try again.");
     } finally {
       setLoading(false);

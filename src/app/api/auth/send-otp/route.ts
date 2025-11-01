@@ -15,16 +15,11 @@ export async function POST(req: Request) {
       );
     }
 
-    // Forward the FormData directly to the backend as it expects multipart/form-data
-    const response = await axiosInstance.post<AuthResponse>(
-      "/auth/send-otp",
-      formData,
-      {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      }
-    );
+    // Forward only the mobile as JSON to backend. Preserve '+' if present.
+    const mobileStr = String(mobile);
+    const response = await axiosInstance.post<AuthResponse>("/auth/send-otp", {
+      mobile: mobileStr,
+    });
 
     return NextResponse.json(response.data);
   } catch (error) {
