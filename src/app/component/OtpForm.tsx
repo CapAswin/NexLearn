@@ -36,10 +36,8 @@ const OtpForm: React.FC<OtpFormProps> = ({ mobile, countryCode, onBack }) => {
       );
       if (response.success) {
         if (response.login && response.access_token && response.refresh_token) {
-          // Store tokens first
           localStorage.setItem("access_token", response.access_token);
           localStorage.setItem("refresh_token", response.refresh_token);
-          // Verify token is stored before navigation
           const storedToken = localStorage.getItem("access_token");
           if (storedToken) {
             alert("Login successful!");
@@ -48,7 +46,6 @@ const OtpForm: React.FC<OtpFormProps> = ({ mobile, countryCode, onBack }) => {
             setError("Failed to store authentication data");
           }
         } else {
-          // Navigate to signup with mobile and countryCode
           router.push(`/signup?mobile=${mobile}&countryCode=${countryCode}`);
         }
       } else {
@@ -64,7 +61,6 @@ const OtpForm: React.FC<OtpFormProps> = ({ mobile, countryCode, onBack }) => {
   const handleResendOtp = async () => {
     setError(null);
     setResendLoading(true);
-    // Clear the OTP input when resending
     setCode("");
     try {
       await sendOtp(mobile, countryCode);
@@ -79,7 +75,6 @@ const OtpForm: React.FC<OtpFormProps> = ({ mobile, countryCode, onBack }) => {
   return (
     <div className="flex flex-1 flex-col bg-white text-[#1c2b3a] m-2 rounded-lg p-4 sm:p-5 md:p-6 lg:p-7 xl:p-8 2xl:p-9 gap-3 sm:gap-4 justify-between transition-all duration-300">
       <div className="w-full max-w-sm bg-white flex flex-col space-y-6 p-2">
-        {/* Title */}
         <div>
           <h1 className="text-[22px] font-semibold text-[#1f2937] leading-snug">
             Enter the code we texted you
@@ -92,7 +87,6 @@ const OtpForm: React.FC<OtpFormProps> = ({ mobile, countryCode, onBack }) => {
           </p>
         </div>
 
-        {/* Input Field */}
         <div className="flex flex-col space-y-1">
           <label
             htmlFor="sms"
@@ -110,16 +104,13 @@ const OtpForm: React.FC<OtpFormProps> = ({ mobile, countryCode, onBack }) => {
           />
         </div>
 
-        {/* Info Text */}
         <p className="text-[13px] text-[#6b7280] leading-snug">
           Your 6 digit code is on its way. This can sometimes take a few moments
           to arrive.
         </p>
 
-        {/* Error message (if any) */}
         {error && <p className="text-red-500 text-sm">{error}</p>}
 
-        {/* Resend Code */}
         <button
           type="button"
           onClick={handleResendOtp}
