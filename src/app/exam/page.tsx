@@ -314,11 +314,9 @@ const ExamInterface = () => {
       setCurrentQuestion(next);
       setQuestionStatuses((prev) => {
         const newStatuses = { ...prev };
-        // For new current
         if (!newStatuses[next] || newStatuses[next] === "not-attended") {
           newStatuses[next] = "visited";
         }
-        // For old current
         if (
           !newStatuses[currentQuestion] ||
           newStatuses[currentQuestion] === "not-attended"
@@ -379,7 +377,6 @@ const ExamInterface = () => {
     }
   };
 
-  // Calculate answered and marked counts
   const answeredCount = Object.values(answers).filter(
     (answer) => answer !== null
   ).length;
@@ -414,9 +411,7 @@ const ExamInterface = () => {
       <Header />
 
       <div className="flex flex-col items-center justify-center py-6 text-center px-2 w-full flex-1 mt-20">
-        {/* Body */}
         <div className="w-full max-w-7xl mx-auto flex flex-col lg:flex-row gap-7 min-h-[600px]">
-          {/* Left Section */}
           <div className="flex-1 min-w-[600px] lg:min-w-[700px]">
             <div className="flex justify-between items-center mb-4">
               <h1 className="text-[#1C2B3A] font-semibold text-lg">Exam</h1>
@@ -526,7 +521,6 @@ const ExamInterface = () => {
               </div>
             )}
 
-            {/* Bottom Buttons */}
             {examStarted && (
               <div className="flex flex-col sm:flex-row gap-3 mt-6">
                 <button
@@ -559,7 +553,6 @@ const ExamInterface = () => {
             )}
           </div>
 
-          {/* Right Section */}
           <div className="w-full lg:w-[35%] min-w-[300px] lg:min-w-[350px] rounded-lg shadow-sm">
             <div className="flex justify-between items-center mb-4">
               <p
@@ -583,7 +576,6 @@ const ExamInterface = () => {
                 </span>
               </div>
             </div>
-            {/* Question Grid */}
             <div className="grid grid-cols-10 gap-2 text-sm font-medium mb-4">
               {questions.map((_, i) => {
                 const questionNumber = i + 1;
@@ -618,7 +610,6 @@ const ExamInterface = () => {
               })}
             </div>
 
-            {/* Legend */}
             <div className="flex flex-wrap gap-3 text-xs font-medium text-[#1C2B3A]">
               <div className="flex items-center gap-2">
                 <span className="w-4 h-4 bg-[#4CAF50] rounded-sm"></span>{" "}
