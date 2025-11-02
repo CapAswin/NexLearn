@@ -16,7 +16,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // Send to backend as FormData
     const backendForm = new FormData();
     backendForm.append("mobile", String(mobile));
     backendForm.append("otp", String(otp));
