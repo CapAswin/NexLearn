@@ -2,10 +2,11 @@
 import Header from "@/app/component/Header";
 import Image from "next/image";
 import React, { useState, useEffect } from "react";
-import { listQuestions } from "@/api/exam";
-import { ListQuestionsResponse, Question } from "@/types";
+import { useRouter } from "next/navigation";
+import { listQuestions, ListQuestionsResponse, Question } from "@/api/exam";
 
 const ExamInterface = () => {
+  const router = useRouter();
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
@@ -24,6 +25,13 @@ const ExamInterface = () => {
   useEffect(() => {
     const fetchQuestions = async () => {
       try {
+        // Check if token exists before making API call
+        const token = localStorage.getItem("access_token");
+        if (!token) {
+          router.push("/login");
+          return;
+        }
+
         const response: ListQuestionsResponse = await listQuestions();
         setExamData(response);
         if (response.success) {
@@ -45,14 +53,14 @@ const ExamInterface = () => {
         } else {
           setError("Failed to load questions");
         }
-      } catch (err) {
+      } catch {
         setError("Failed to load questions");
       } finally {
         setLoading(false);
       }
     };
     fetchQuestions();
-  }, []);
+  }, [router]);
 
   // Timer effect
   useEffect(() => {
@@ -130,11 +138,11 @@ const ExamInterface = () => {
     <div className="min-h-screen bg-[rgba(244,252,255,1)] flex flex-col">
       <Header />
 
-      <div className="flex flex-col items-center py-6 text-center mt-[7rem] px-4 w-full">
+      <div className="flex flex-col items-center justify-center py-6 text-center px-2 w-full flex-1">
         {/* Body */}
-        <div className="w-[98%] max-w-[1279px] flex flex-col lg:flex-row gap-7">
+        <div className="w-full flex flex-col lg:flex-row gap-7">
           {/* Left Section */}
-          <div>
+          <div className={error ? "min-w-[800px]" : ""}>
             <div className="flex justify-between items-center mb-4">
               <h1 className="text-[#1C2B3A] font-semibold text-lg">
                 {examData?.instruction || "Exam"}
@@ -161,6 +169,19 @@ const ExamInterface = () => {
                   {questions[currentQuestion]?.question_text ||
                     "Loading question..."}
                 </p>
+                {/* Render tags if present */}
+                {questions[currentQuestion]?.tags && (
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {questions[currentQuestion]!.tags!.map((tag) => (
+                      <span
+                        key={tag}
+                        className="text-xs bg-[#EEF2FF] text-[#1C2B3A] px-2 py-1 rounded-md"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
                 {/* Assuming no image for now, remove Image component */}
               </div>
             </div>
@@ -194,7 +215,7 @@ const ExamInterface = () => {
                     onClick={() => handleAnswerSelect(option.id)}
                   >
                     <span className="text-[#1C2B3A] font-medium">
-                      {String.fromCharCode(65 + i)}. {option.option_text}
+                      {String.fromCharCode(65 + i)}. {option.text}
                     </span>
                     <input
                       type="radio"

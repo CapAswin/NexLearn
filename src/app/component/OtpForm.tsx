@@ -35,16 +35,24 @@ const OtpForm: React.FC<OtpFormProps> = ({ mobile, countryCode, onBack }) => {
         code
       );
       if (response.success) {
-        if (response.login) {
-          // Handle success - navigate to exam
-          alert("Login successful!");
-          router.push("/exam");
+        if (response.login && response.access_token && response.refresh_token) {
+          // Store tokens first
+          localStorage.setItem("access_token", response.access_token);
+          localStorage.setItem("refresh_token", response.refresh_token);
+          // Verify token is stored before navigation
+          const storedToken = localStorage.getItem("access_token");
+          if (storedToken) {
+            alert("Login successful!");
+            router.push("/instructions");
+          } else {
+            setError("Failed to store authentication data");
+          }
         } else {
           // Navigate to signup with mobile and countryCode
           router.push(`/signup?mobile=${mobile}&countryCode=${countryCode}`);
         }
       } else {
-        setError(response.message);
+        setError(response.message || "Login failed. Please try again.");
       }
     } catch {
       setError("Failed to verify OTP. Please try again.");

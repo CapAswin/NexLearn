@@ -1,29 +1,36 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { logout } from "../api/auth";
 import { User } from "../types";
 
 export const useAuth = () => {
-  const [user, setUser] = useState<User | null>(() => {
-    // Initialize user from localStorage synchronously
-    const token = localStorage.getItem("token");
-    if (token) {
-      return {
-        id: 1,
-        name: "User",
-        email: "user@example.com",
-        mobile: "",
-        qualification: "",
-        profile_image: "",
-      };
-    }
-    return null;
-  });
-  const [loading, setLoading] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Initialize user from localStorage after component mounts
+    const initializeUser = () => {
+      if (typeof window !== "undefined") {
+        const token = localStorage.getItem("access_token");
+        if (token) {
+          setUser({
+            id: 1,
+            name: "User",
+            email: "user@example.com",
+            mobile: "",
+            qualification: "",
+            profile_image: "",
+          });
+        }
+        setLoading(false);
+      }
+    };
+    initializeUser();
+  }, []);
 
   const handleLogout = async () => {
     try {
       await logout();
-      localStorage.removeItem("token");
+      localStorage.removeItem("access_token");
       setUser(null);
     } catch (error) {
       throw error;

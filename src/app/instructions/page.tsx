@@ -1,71 +1,116 @@
 "use client";
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Header from "@/app/component/Header";
+import TagPill from "@/app/component/TagPill";
+import { listQuestions, ListQuestionsResponse } from "@/api/exam";
 
 const Instructions = () => {
+  const router = useRouter();
+  const [examData, setExamData] = useState<ListQuestionsResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchExamData = async () => {
+      try {
+        const token = localStorage.getItem("access_token");
+        if (!token) {
+          router.push("/login");
+          return;
+        }
+
+        const response: ListQuestionsResponse = await listQuestions();
+        if (response.success) {
+          setExamData(response);
+        } else {
+          setError("Failed to load exam data");
+        }
+      } catch {
+        setError("Failed to load exam data");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchExamData();
+  }, [router]);
+
+  const instructionHTML = examData?.instruction
+    ?.replace(/<ol>/g, "<ol class='list-decimal pl-6 space-y-2 text-gray-700'>")
+    ?.replace(/<li>/g, "<li class='leading-relaxed'>");
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[rgba(244,252,255,1)] flex flex-col items-center">
+        <Header />
+        <main className="flex flex-col items-center text-center mt-[7rem] px-4 w-full max-w-3xl">
+          <div className="text-lg">Loading exam instructions...</div>
+        </main>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-[rgba(244,252,255,1)] flex flex-col items-center">
+        <Header />
+        <main className="flex flex-col items-center text-center mt-[7rem] px-4 w-full max-w-3xl">
+          <div className="text-red-500 text-lg">{error}</div>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[rgba(244,252,255,1)] flex flex-col items-center">
       <Header />
 
-      {/* Main Content */}
       <main className="flex flex-col items-center text-center mt-[7rem] px-4 w-full max-w-3xl">
-        <h2 className="text-2xl font-semibold text-[#1c2b3a] mb-6">
-          Ancient Indian History MCQ
-        </h2>
-
-        {/* Stats Section */}
-        <div className="flex flex-wrap justify-center items-center gap-6 mb-8">
-          <div className="bg-[#1c2b3a] text-white rounded-md px-8 py-4 flex flex-col items-center">
-            <span className="text-sm opacity-80">Total MCQs:</span>
-            <span className="text-3xl font-semibold">100</span>
-          </div>
-          <div className="bg-[#1c2b3a] text-white rounded-md px-8 py-4 flex flex-col items-center">
-            <span className="text-sm opacity-80">Total marks:</span>
-            <span className="text-3xl font-semibold">100</span>
-          </div>
-          <div className="bg-[#1c2b3a] text-white rounded-md px-8 py-4 flex flex-col items-center">
-            <span className="text-sm opacity-80">Total time:</span>
-            <span className="text-3xl font-semibold">90:00</span>
+        <div className="flex justify-center mb-8">
+          <div className="bg-[#1c2b3a] text-white rounded-lg flex flex-wrap justify-center divide-x divide-gray-500 overflow-hidden">
+            {[
+              { label: "Total MCQ's", value: examData?.questions_count || 0 },
+              { label: "Total marks", value: examData?.total_marks || 0 },
+              { label: "Total time", value: `${examData?.total_time || 0}:00` },
+            ].map((item, index) => (
+              <div
+                key={index}
+                className="flex flex-col items-center justify-center px-10 py-4 min-w-[100px]"
+              >
+                <span className="text-sm opacity-80">{item.label}:</span>
+                <span className="text-3xl font-semibold">{item.value}</span>
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* Instructions */}
-        <div className="text-left max-w-2xl text-gray-700 text-[15px] leading-relaxed mb-8">
+        <div className="text-left max-w-2xl text-gray-700 text-[15px] leading-relaxed mb-2">
           <p className="font-semibold mb-2">Instructions:</p>
-          <ol className="list-decimal list-inside space-y-1">
-            <li>You have 100 minutes to complete the test.</li>
-            <li>Test consists of 100 multiple-choice questions.</li>
-            <li>
-              You are allowed 2 retest attempts if you do not pass on the first
-              try.
-            </li>
-            <li>Each incorrect answer will incur a negative mark of -1/4.</li>
-            <li>
-              Ensure you are in a quiet environment and have a stable internet
-              connection.
-            </li>
-            <li>
-              Keep an eye on the timer, and try to answer all questions within
-              the given time.
-            </li>
-            <li>
-              Do not use any external resources such as dictionaries, websites,
-              or assistance.
-            </li>
-            <li>
-              Complete the test honestly to accurately assess your proficiency
-              level.
-            </li>
-            <li>Check answers before submitting.</li>
-            <li>
-              Your test results will be displayed immediately after submission,
-              indicating whether you have passed or need to retake the test.
-            </li>
-          </ol>
+          <div
+            className="text-gray-700 leading-relaxed list-decimal space-y-2"
+            dangerouslySetInnerHTML={{
+              __html: instructionHTML ?? "",
+            }}
+          />
         </div>
 
-        {/* Start Button */}
-        <button className="bg-[#1c2b3a] hover:bg-[#233b50] text-white px-8 py-3 rounded-lg text-lg font-medium transition mb-5">
+        {examData?.questions && (
+          <div className="w-full max-w-2xl mb-8 text-left">
+            <p className="font-semibold mb-2">Topics covered:</p>
+            <div className="flex flex-wrap gap-2">
+              {Array.from(
+                new Set(examData.questions.flatMap((q) => q.tags || []))
+              ).map((tag) => (
+                <TagPill key={tag} tag={tag} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        <button
+          onClick={() => router.push("/exam")}
+          className="bg-[#1c2b3a] hover:bg-[#233b50] text-white px-8 py-3 rounded-lg text-lg font-medium transition mb-5"
+        >
           Start Test
         </button>
       </main>

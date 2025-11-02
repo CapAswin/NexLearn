@@ -1,18 +1,25 @@
 import axiosInstance from "./axiosInstance";
 
+export interface UserProfile {
+  id: string;
+  name: string;
+  email?: string;
+  mobile: string;
+  country_code?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export const sendOtp = async (mobile: string, country_code: string) => {
   try {
-    // Ensure the country code includes '+' when sending to backend
     const normalizedCountry = country_code.startsWith("+")
       ? country_code.trim()
       : `+${country_code.trim()}`;
-    const fullMobile = `${normalizedCountry}${mobile.trim()}`; // e.g., +919876543210
+    const fullMobile = `${normalizedCountry}${mobile.trim()}`;
 
-    // Use FormData to match server route which expects multipart/form-data
     const formData = new FormData();
     formData.append("mobile", fullMobile);
 
-    // Let the browser set the Content-Type (including boundary) for FormData
     const response = await axiosInstance.post("/auth/send-otp", formData);
     return response.data;
   } catch (error) {
@@ -27,23 +34,36 @@ export const verifyOtp = async (
   otp: string
 ) => {
   try {
-    const normalizedCountry = country_code.trim();
+    const normalizedCountry = country_code.startsWith("+")
+      ? country_code.trim()
+      : `+${country_code.trim()}`;
     const fullMobile = `${normalizedCountry}${mobile.trim()}`;
+
     const formData = new FormData();
     formData.append("mobile", fullMobile);
     formData.append("otp", otp);
 
     const response = await axiosInstance.post("/auth/verify-otp", formData);
+
+    if (!response.data) {
+      throw new Error("Invalid response from server");
+    }
+
+    // Clear any existing tokens before setting new ones
+    if (response.data.success && response.data.login) {
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("refresh_token");
+    }
+
     return response.data;
   } catch (error) {
     console.error("Verify OTP Error:", error);
-    throw new Error("OTP verification failed");
+    throw error instanceof Error ? error : new Error("OTP verification failed");
   }
 };
 
 export const createProfile = async (formData: FormData) => {
   try {
-    // Use fetch for multipart form upload to avoid axios header issues
     const resp = await fetch("/api/auth/create-profile", {
       method: "POST",
       body: formData,
@@ -59,7 +79,19 @@ export const createProfile = async (formData: FormData) => {
 
 export const logout = async () => {
   try {
-    const response = await axiosInstance.post("/auth/logout");
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      throw new Error("No access token found");
+    }
+    const response = await axiosInstance.post(
+      "/auth/logout",
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
     if (typeof window !== "undefined") {
       localStorage.removeItem("access_token");
     }
@@ -68,4 +100,17 @@ export const logout = async () => {
     console.error("Logout Error:", error);
     throw new Error("Logout failed");
   }
+};
+
+export const getProfile = async (): Promise<UserProfile> => {
+  const token = localStorage.getItem("access_token");
+  if (!token) {
+    throw new Error("No access token found");
+  }
+  const response = await axiosInstance.get<UserProfile>("/auth/profile", {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return response.data;
 };
