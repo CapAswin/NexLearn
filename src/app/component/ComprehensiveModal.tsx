@@ -23,7 +23,7 @@ const ComprehensiveModal: React.FC<ComprehensiveModalProps> = ({
         <h2 className="text-lg font-semibold text-gray-800 mb-1">
           Comprehensive Paragraph
         </h2>
-        <div className="border-b border-gray-300 mb-4" /> {/* Divider */}
+        <div className="border-b border-gray-300 mb-4" />
         <p className="text-gray-700 whitespace-pre-line leading-relaxed text-sm">
           {displayParagraph}
         </p>

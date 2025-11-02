@@ -636,7 +636,6 @@ const ExamInterface = () => {
         </div>
       </div>
 
-      {/* Submit Test Modal */}
       <SubmitTestModal
         isOpen={showSubmitModal}
         onClose={handleCancelSubmit}
@@ -647,14 +646,12 @@ const ExamInterface = () => {
         marked={markedCount}
       />
 
-      {/* Comprehensive Modal */}
       <ComprehensiveModal
         isOpen={showComprehensiveModal}
         onClose={handleCloseComprehensiveModal}
         comprehension={questions[currentQuestion]?.comprehension || ""}
       />
 
-      {/* Alert Modal */}
       {showAlertModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full mx-4">

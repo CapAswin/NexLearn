@@ -25,7 +25,6 @@ export async function POST(req: Request) {
 
     const answers: AnswerSubmission[] = JSON.parse(answersJson.toString());
 
-    // Fetch submit answers from backend using fetch
     const backendUrl = `${axiosInstance.defaults.baseURL}/answers/submit`;
     const response = await fetch(backendUrl, {
       method: "POST",

@@ -18,14 +18,12 @@ export async function POST(req: Request) {
       );
     }
 
-    // Build a web FormData from received formData and forward using fetch.
-    // Using fetch ensures the multipart boundary is set correctly in Node.
     const forwardForm = new FormData();
     forwardForm.append("mobile", String(mobile));
     forwardForm.append("name", String(name));
     forwardForm.append("email", String(email));
     forwardForm.append("qualification", String(qualification));
-    // profileImage can be a File
+
     const file = profileImage as File | null;
     if (file) {
       forwardForm.append(
