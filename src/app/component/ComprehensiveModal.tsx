@@ -19,10 +19,11 @@ const ComprehensiveModal: React.FC<ComprehensiveModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-lg w-[90%] max-w-[585px] max-h-[85vh] overflow-y-auto p-6 relative">
-        <h2 className="text-lg font-semibold text-gray-800 mb-4">
+      <div className="bg-white rounded-lg shadow-lg w-[90%] max-w-[585px] max-h-[85vh] overflow-y-auto p-4 relative">
+        <h2 className="text-lg font-semibold text-gray-800 mb-1">
           Comprehensive Paragraph
         </h2>
+        <div className="border-b border-gray-300 mb-4" /> {/* Divider */}
         <p className="text-gray-700 whitespace-pre-line leading-relaxed text-sm">
           {displayParagraph}
         </p>
