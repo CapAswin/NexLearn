@@ -65,7 +65,6 @@ const ResultPage = () => {
       try {
         const response = await getExamResults();
 
-        // Defensive type-checking
         const data = response as Partial<ExamResultsResponse>;
 
         if (data?.success && data.results) {
@@ -120,7 +119,6 @@ const ResultPage = () => {
       <Header />
 
       <main className="flex flex-col items-center text-center mt-[7rem] px-4 w-full max-w-3xl">
-        {/* Marks Box */}
         <div className="bg-gradient-to-r from-[#0d7aa8] to-[#163445] rounded-[17.64px] shadow-md text-white w-[429px] h-[150px] flex flex-col items-center justify-center text-center">
           <p className="font-medium text-[18.81px] mb-2">Marks Obtained:</p>
           <h1 className="font-medium text-[68px] leading-none">
@@ -128,7 +126,6 @@ const ResultPage = () => {
           </h1>
         </div>
 
-        {/* Details Section */}
         <div className="w-[429px] mt-8 space-y-3 text-gray-700 text-sm">
           <ResultRow
             color="#DDA428"
@@ -156,7 +153,6 @@ const ResultPage = () => {
           />
         </div>
 
-        {/* Done Button */}
         <button
           onClick={() => router.push("/dashboard")}
           className="mt-8 bg-[#163445] text-white w-[429px] h-[48px] rounded-[10px] hover:bg-[#0d2c3d] transition"
