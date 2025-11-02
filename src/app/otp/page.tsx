@@ -10,12 +10,10 @@ const OtpPage = () => {
   let mobile = searchParams.get("mobile") || "";
   let countryCode = searchParams.get("countryCode") || "";
 
-  // Normalize country code to include "+" if missing
   if (countryCode && !countryCode.startsWith("+")) {
     countryCode = "+" + countryCode;
   }
 
-  // Parse mobile number to extract country code if embedded
   mobile = mobile.trim();
   if (mobile.startsWith("91") && mobile.length > 10) {
     countryCode = "+91";
