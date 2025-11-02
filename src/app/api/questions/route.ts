@@ -4,7 +4,6 @@ import type { ListQuestionsResponse } from "@/types/api";
 
 export async function GET(req: NextRequest) {
   try {
-    // Extract token from Authorization header
     const authHeader = req.headers.get("authorization");
     const token = authHeader?.startsWith("Bearer ")
       ? authHeader.replace("Bearer ", "").trim()
@@ -17,7 +16,6 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // Fetch questions from backend using fetch
     const backendUrl = `${axiosInstance.defaults.baseURL}/question/list`;
     const response = await fetch(backendUrl, {
       method: "GET",
@@ -40,10 +38,8 @@ export async function GET(req: NextRequest) {
 
     const data: ListQuestionsResponse = await response.json();
 
-    // Return the backend response
     return NextResponse.json(data, { status: 200 });
   } catch (error) {
-    // Handle unexpected errors
     console.error("Unexpected error in /api/questions:", error);
     return NextResponse.json(
       { success: false, message: "An unexpected server error occurred" },

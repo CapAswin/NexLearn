@@ -15,7 +15,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // Convert to string and send as FormData (API requires multipart/form-data)
     const backendForm = new FormData();
     backendForm.append("mobile", String(mobile));
 

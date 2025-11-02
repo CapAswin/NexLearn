@@ -16,7 +16,6 @@ const Instructions = () => {
   useEffect(() => {
     const fetchExamData = async () => {
       try {
-        // Check if user is logged in
         const token = localStorage.getItem("access_token");
         if (!token) {
           router.push("/login");
@@ -71,7 +70,6 @@ const Instructions = () => {
     <div className="min-h-screen bg-[rgba(244,252,255,1)] flex flex-col items-center">
       <Header />
 
-      {/* Main Content */}
       <main className="flex flex-col items-center text-center mt-[7rem] px-4 w-full max-w-3xl">
         <div className="flex justify-center mb-8">
           <div className="bg-[#1c2b3a] text-white rounded-lg flex flex-wrap justify-center divide-x divide-gray-500 overflow-hidden">
