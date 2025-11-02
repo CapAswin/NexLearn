@@ -22,7 +22,6 @@ const LoginForm = () => {
     try {
       const response: SendOtpResponse = await sendOtp(mobile, countryCode);
       if (response.success) {
-        // Navigate to OTP page with mobile and countryCode (encode to preserve '+')
         window.location.href = `/otp?mobile=${encodeURIComponent(
           mobile
         )}&countryCode=${encodeURIComponent(countryCode)}`;

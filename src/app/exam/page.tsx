@@ -55,11 +55,10 @@ const ExamInterface = () => {
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleSubmitExam = useCallback(async () => {
-    if (examSubmitted) return; // Prevent multiple submissions
+    if (examSubmitted) return;
     setExamSubmitted(true);
 
     try {
-      // Submit answers to backend
       const answersToSubmit = Object.entries(answers)
         .map(([questionIndex, optionId]) => ({
           question_id: questions[parseInt(questionIndex)]?.id,
@@ -82,17 +81,15 @@ const ExamInterface = () => {
         }
       }
 
-      // Clear exam data from localStorage
       localStorage.removeItem("exam_time_left");
       localStorage.removeItem("exam_start_time");
       localStorage.removeItem("exam_answers");
       localStorage.removeItem("exam_statuses");
 
-      // Navigate to results page
       router.push("/result");
     } catch (error) {
       console.error("Error submitting exam:", error);
-      setExamSubmitted(false); // Reset on error
+      setExamSubmitted(false);
     }
   }, [router, answers, questions, examSubmitted]);
 
@@ -125,7 +122,6 @@ const ExamInterface = () => {
 
           setQuestions(mappedQuestions as Question[]);
 
-          // Check if exam has already started (time stored in localStorage)
           const storedTime = localStorage.getItem("exam_time_left");
           const examStartTime = localStorage.getItem("exam_start_time");
 
@@ -137,14 +133,11 @@ const ExamInterface = () => {
             setTimeLeft(remainingTime);
             setExamStarted(true);
           } else {
-            // First time starting exam
             const totalTime = (response.total_time || 0) * 60;
             setTimeLeft(totalTime);
-            // Store initial time in localStorage for persistence
             localStorage.setItem("exam_time_left", totalTime.toString());
           }
 
-          // Load saved answers and statuses from localStorage
           const savedAnswers = localStorage.getItem("exam_answers");
           const savedStatuses = localStorage.getItem("exam_statuses");
 
@@ -183,7 +176,6 @@ const ExamInterface = () => {
     fetchQuestions();
   }, [router]);
 
-  // Save answers and statuses to localStorage whenever they change
   useEffect(() => {
     if (Object.keys(answers).length > 0) {
       localStorage.setItem("exam_answers", JSON.stringify(answers));
@@ -196,7 +188,6 @@ const ExamInterface = () => {
     }
   }, [questionStatuses]);
 
-  // Timer effect with high accuracy
   useEffect(() => {
     if (timeLeft > 0 && examStarted) {
       timerRef.current = setInterval(() => {
@@ -204,11 +195,9 @@ const ExamInterface = () => {
           const newTime = prev - 1;
           if (newTime <= 0) {
             if (timerRef.current) clearInterval(timerRef.current);
-            // Handle exam timeout - auto submit
             setTimeout(() => handleSubmitExam(), 0);
             return 0;
           }
-          // Save current time to localStorage
           localStorage.setItem("exam_time_left", newTime.toString());
           return newTime;
         });
@@ -220,7 +209,6 @@ const ExamInterface = () => {
     }
   }, [timeLeft, examStarted, handleSubmitExam]);
 
-  // Prevent page reload/refresh and back button
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (examStarted) {
@@ -233,7 +221,6 @@ const ExamInterface = () => {
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (examStarted) {
-        // Prevent all reload shortcuts with a single check
         if (
           e.key === "F5" ||
           ((e.ctrlKey || e.metaKey) && (e.key === "r" || e.key === "R")) ||
@@ -263,7 +250,6 @@ const ExamInterface = () => {
       }
     };
 
-    // Always add beforeunload listener
     window.addEventListener("beforeunload", handleBeforeUnload);
 
     if (examStarted) {
