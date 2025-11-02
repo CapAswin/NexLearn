@@ -14,31 +14,6 @@ interface ExamResult {
 
 export async function GET(request: NextRequest) {
   try {
-    // For development, skip JWT verification and return mock data
-    // In production, uncomment the JWT verification below
-    /*
-    // Get token from Authorization header
-    const authHeader = request.headers.get("authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json(
-        { success: false, message: "Unauthorized" },
-        { status: 401 }
-      );
-    }
-
-    const token = authHeader.substring(7); // Remove "Bearer " prefix
-
-    try {
-      jwt.verify(token, JWT_SECRET);
-    } catch (error) {
-      return NextResponse.json(
-        { success: false, message: "Invalid token" },
-        { status: 401 }
-      );
-    }
-    */
-
-    // Mock exam results - in a real app, this would come from database
     const mockResults: ExamResult = {
       correct: 8,
       wrong: 2,
