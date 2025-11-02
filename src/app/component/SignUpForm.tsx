@@ -41,7 +41,7 @@ const SignUpForm = () => {
 
     try {
       const formData = new FormData();
-      console.log("countryCode: ", countryCode);
+
       const normalizedCountry = countryCode
         ? countryCode.startsWith("+")
           ? countryCode.trim()

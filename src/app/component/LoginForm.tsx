@@ -30,7 +30,6 @@ const LoginForm = () => {
         setError(response.message);
       }
     } catch (err) {
-      console.error(err);
       setError("Failed to send OTP. Please try again.");
     } finally {
       setLoading(false);

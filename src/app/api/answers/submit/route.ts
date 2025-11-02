@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import axios from "axios";
 import axiosInstance from "@/lib/axios";
 import type { SubmitAnswersResponse, AnswerSubmission } from "@/types/api";
 
@@ -26,26 +25,33 @@ export async function POST(req: Request) {
 
     const answers: AnswerSubmission[] = JSON.parse(answersJson.toString());
 
-    const response = await axiosInstance.post<SubmitAnswersResponse>(
-      "/answers/submit",
-      { answers },
-      {
-        headers: { Authorization: authHeader },
-      }
-    );
+    // Fetch submit answers from backend using fetch
+    const backendUrl = `${axiosInstance.defaults.baseURL}/answers/submit`;
+    const response = await fetch(backendUrl, {
+      method: "POST",
+      headers: {
+        Authorization: authHeader,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ answers }),
+    });
 
-    return NextResponse.json(response.data);
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
       return NextResponse.json(
         {
           success: false,
-          message: error.response?.data?.message || "Failed to submit answers",
+          message: errorData.detail?.message || "Failed to submit answers",
         },
-        { status: error.response?.status || 500 }
+        { status: response.status }
       );
     }
 
+    const data: SubmitAnswersResponse = await response.json();
+
+    return NextResponse.json(data);
+  } catch (error) {
+    console.error("Unexpected error in /api/answers/submit:", error);
     return NextResponse.json(
       { success: false, message: "An unexpected error occurred" },
       { status: 500 }

@@ -76,7 +76,6 @@ const ResultPage = () => {
           addToast(data?.message || "Failed to load results", "error");
         }
       } catch (err) {
-        console.error("Error fetching results:", err);
         setError("Failed to load results. Please check authentication.");
         addToast(
           "Failed to load results. Please check authentication.",

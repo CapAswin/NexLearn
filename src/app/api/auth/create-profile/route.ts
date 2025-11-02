@@ -4,19 +4,7 @@ import { axiosInstance } from "@/lib/axios";
 export async function POST(req: Request) {
   try {
     const formData = await req.formData();
-    // Log if formData has any entries
-    let count = 0;
-    for (const [k, v] of formData.entries()) {
-      count++;
-      if (v instanceof File) {
-        console.log(
-          `[create-profile] entry: ${k} => File(${v.name}, ${v.type}, ${v.size})`
-        );
-      } else {
-        console.log(`[create-profile] entry: ${k} =>`, v);
-      }
-    }
-    console.log(`[create-profile] formData entries count: ${count}`);
+
     const mobile = formData.get("mobile");
     const name = formData.get("name");
     const email = formData.get("email");

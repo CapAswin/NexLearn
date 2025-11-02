@@ -51,10 +51,37 @@ const ExamInterface = () => {
   const [examStarted, setExamStarted] = useState(false);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [showComprehensiveModal, setShowComprehensiveModal] = useState(false);
+  const [examSubmitted, setExamSubmitted] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleSubmitExam = useCallback(async () => {
+    if (examSubmitted) return; // Prevent multiple submissions
+    setExamSubmitted(true);
+
     try {
+      // Submit answers to backend
+      const answersToSubmit = Object.entries(answers)
+        .map(([questionIndex, optionId]) => ({
+          question_id: questions[parseInt(questionIndex)]?.id,
+          option_id: optionId,
+        }))
+        .filter((answer) => answer.question_id && answer.option_id !== null);
+
+      if (answersToSubmit.length > 0) {
+        const response = await fetch("/api/answers/submit", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          },
+          body: JSON.stringify({ answers: answersToSubmit }),
+        });
+
+        if (!response.ok) {
+          console.error("Failed to submit answers");
+        }
+      }
+
       // Clear exam data from localStorage
       localStorage.removeItem("exam_time_left");
       localStorage.removeItem("exam_start_time");
@@ -65,8 +92,9 @@ const ExamInterface = () => {
       router.push("/result");
     } catch (error) {
       console.error("Error submitting exam:", error);
+      setExamSubmitted(false); // Reset on error
     }
-  }, [router]);
+  }, [router, answers, questions, examSubmitted]);
 
   useEffect(() => {
     const fetchQuestions = async () => {
@@ -112,6 +140,8 @@ const ExamInterface = () => {
             // First time starting exam
             const totalTime = (response.total_time || 0) * 60;
             setTimeLeft(totalTime);
+            // Store initial time in localStorage for persistence
+            localStorage.setItem("exam_time_left", totalTime.toString());
           }
 
           // Load saved answers and statuses from localStorage
@@ -203,37 +233,16 @@ const ExamInterface = () => {
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (examStarted) {
-        // Prevent all reload shortcuts
-        if ((e.ctrlKey || e.metaKey) && (e.key === "r" || e.key === "R")) {
-          e.preventDefault();
-          alert("Page refresh is not allowed during the exam.");
-        }
-        // Prevent F5 refresh
-        if (e.key === "F5") {
-          e.preventDefault();
-          alert("Page refresh is not allowed during the exam.");
-        }
-        // Prevent Ctrl+F5 hard refresh
-        if ((e.ctrlKey || e.metaKey) && e.key === "F5") {
-          e.preventDefault();
-          alert("Page refresh is not allowed during the exam.");
-        }
-        // Prevent Ctrl+Shift+R hard refresh
-        if (
-          (e.ctrlKey || e.metaKey) &&
-          e.shiftKey &&
-          (e.key === "r" || e.key === "R")
-        ) {
-          e.preventDefault();
-          alert("Page refresh is not allowed during the exam.");
-        }
-        // Prevent browser reload button
+        // Prevent all reload shortcuts with a single check
         if (
           e.key === "F5" ||
-          ((e.ctrlKey || e.metaKey) && e.key === "r") ||
-          ((e.ctrlKey || e.metaKey) && e.key === "R")
+          ((e.ctrlKey || e.metaKey) && (e.key === "r" || e.key === "R")) ||
+          ((e.ctrlKey || e.metaKey) &&
+            e.shiftKey &&
+            (e.key === "r" || e.key === "R"))
         ) {
           e.preventDefault();
+          e.stopImmediatePropagation();
           alert("Page refresh is not allowed during the exam.");
         }
       }
@@ -254,33 +263,21 @@ const ExamInterface = () => {
       }
     };
 
-    // Prevent browser back/forward navigation
-    const handleNavigation = (e: Event) => {
-      if (examStarted) {
-        e.preventDefault();
-        alert("Navigation is not allowed during the exam.");
-        return false;
-      }
-    };
+    // Always add beforeunload listener
+    window.addEventListener("beforeunload", handleBeforeUnload);
 
     if (examStarted) {
       window.history.pushState(null, "", window.location.href);
       window.addEventListener("popstate", handlePopState);
       window.addEventListener("contextmenu", handleContextMenu);
-      // Additional navigation prevention
-      window.addEventListener("beforeunload", handleBeforeUnload, {
-        capture: true,
-      });
+      window.addEventListener("keydown", handleKeyDown, { capture: true });
     }
-
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    window.addEventListener("keydown", handleKeyDown);
 
     return () => {
       window.removeEventListener("beforeunload", handleBeforeUnload);
-      window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("popstate", handlePopState);
       window.removeEventListener("contextmenu", handleContextMenu);
+      window.removeEventListener("keydown", handleKeyDown, { capture: true });
     };
   }, [examStarted]);
 
@@ -434,9 +431,6 @@ const ExamInterface = () => {
                 </button>
               </div>
               <div className="mb-8">
-                <h3 className="text-lg font-semibold text-[#1C2B3A] mb-3">
-                  Question
-                </h3>
                 <p className="text-[#1C2B3A] text-base font-medium mb-4">
                   {currentQuestion + 1}.{" "}
                   {questions[currentQuestion]?.question_text ||
