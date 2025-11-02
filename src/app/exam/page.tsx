@@ -1,8 +1,11 @@
 "use client";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import Header from "@/app/component/Header";
+import ComprehensiveModal from "@/app/component/ComprehensiveModal";
+import SubmitTestModal from "@/app/component/SubmitTestModal";
 import { useRouter } from "next/navigation";
 import { listQuestions, Question } from "@/api/exam";
+import Image from "next/image";
 
 type RawOption = {
   id: number;
@@ -46,7 +49,24 @@ const ExamInterface = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [examStarted, setExamStarted] = useState(false);
+  const [showSubmitModal, setShowSubmitModal] = useState(false);
+  const [showComprehensiveModal, setShowComprehensiveModal] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleSubmitExam = useCallback(async () => {
+    try {
+      // Clear exam data from localStorage
+      localStorage.removeItem("exam_time_left");
+      localStorage.removeItem("exam_start_time");
+      localStorage.removeItem("exam_answers");
+      localStorage.removeItem("exam_statuses");
+
+      // Navigate to results page
+      router.push("/result");
+    } catch (error) {
+      console.error("Error submitting exam:", error);
+    }
+  }, [router]);
 
   useEffect(() => {
     const fetchQuestions = async () => {
@@ -155,7 +175,7 @@ const ExamInterface = () => {
           if (newTime <= 0) {
             if (timerRef.current) clearInterval(timerRef.current);
             // Handle exam timeout - auto submit
-            handleSubmitExam();
+            setTimeout(() => handleSubmitExam(), 0);
             return 0;
           }
           // Save current time to localStorage
@@ -168,7 +188,7 @@ const ExamInterface = () => {
         if (timerRef.current) clearInterval(timerRef.current);
       };
     }
-  }, [timeLeft, examStarted]);
+  }, [timeLeft, examStarted, handleSubmitExam]);
 
   // Prevent page reload/refresh and back button
   useEffect(() => {
@@ -182,18 +202,40 @@ const ExamInterface = () => {
     };
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (
-        examStarted &&
-        (e.ctrlKey || e.metaKey) &&
-        (e.key === "r" || e.key === "R")
-      ) {
-        e.preventDefault();
-        alert("Page refresh is not allowed during the exam.");
-      }
-      // Prevent F5 refresh
-      if (examStarted && e.key === "F5") {
-        e.preventDefault();
-        alert("Page refresh is not allowed during the exam.");
+      if (examStarted) {
+        // Prevent all reload shortcuts
+        if ((e.ctrlKey || e.metaKey) && (e.key === "r" || e.key === "R")) {
+          e.preventDefault();
+          alert("Page refresh is not allowed during the exam.");
+        }
+        // Prevent F5 refresh
+        if (e.key === "F5") {
+          e.preventDefault();
+          alert("Page refresh is not allowed during the exam.");
+        }
+        // Prevent Ctrl+F5 hard refresh
+        if ((e.ctrlKey || e.metaKey) && e.key === "F5") {
+          e.preventDefault();
+          alert("Page refresh is not allowed during the exam.");
+        }
+        // Prevent Ctrl+Shift+R hard refresh
+        if (
+          (e.ctrlKey || e.metaKey) &&
+          e.shiftKey &&
+          (e.key === "r" || e.key === "R")
+        ) {
+          e.preventDefault();
+          alert("Page refresh is not allowed during the exam.");
+        }
+        // Prevent browser reload button
+        if (
+          e.key === "F5" ||
+          ((e.ctrlKey || e.metaKey) && e.key === "r") ||
+          ((e.ctrlKey || e.metaKey) && e.key === "R")
+        ) {
+          e.preventDefault();
+          alert("Page refresh is not allowed during the exam.");
+        }
       }
     };
 
@@ -212,10 +254,23 @@ const ExamInterface = () => {
       }
     };
 
+    // Prevent browser back/forward navigation
+    const handleNavigation = (e: Event) => {
+      if (examStarted) {
+        e.preventDefault();
+        alert("Navigation is not allowed during the exam.");
+        return false;
+      }
+    };
+
     if (examStarted) {
       window.history.pushState(null, "", window.location.href);
       window.addEventListener("popstate", handlePopState);
       window.addEventListener("contextmenu", handleContextMenu);
+      // Additional navigation prevention
+      window.addEventListener("beforeunload", handleBeforeUnload, {
+        capture: true,
+      });
     }
 
     window.addEventListener("beforeunload", handleBeforeUnload);
@@ -283,19 +338,25 @@ const ExamInterface = () => {
     }
   };
 
-  const handleSubmitExam = async () => {
-    try {
-      // Clear exam data from localStorage
-      localStorage.removeItem("exam_time_left");
-      localStorage.removeItem("exam_start_time");
-      localStorage.removeItem("exam_answers");
-      localStorage.removeItem("exam_statuses");
+  const handleSubmitClick = () => {
+    setShowSubmitModal(true);
+  };
 
-      // Navigate to results page
-      router.push("/result");
-    } catch (error) {
-      console.error("Error submitting exam:", error);
-    }
+  const handleConfirmSubmit = () => {
+    setShowSubmitModal(false);
+    handleSubmitExam();
+  };
+
+  const handleCancelSubmit = () => {
+    setShowSubmitModal(false);
+  };
+
+  const handleOpenComprehensiveModal = () => {
+    setShowComprehensiveModal(true);
+  };
+
+  const handleCloseComprehensiveModal = () => {
+    setShowComprehensiveModal(false);
   };
 
   const getStatusColor = (status: string) => {
@@ -314,6 +375,14 @@ const ExamInterface = () => {
         return "bg-[#D6E2E8] text-[#1C2B3A]";
     }
   };
+
+  // Calculate answered and marked counts
+  const answeredCount = Object.values(answers).filter(
+    (answer) => answer !== null
+  ).length;
+  const markedCount = Object.values(questionStatuses).filter(
+    (status) => status === "marked" || status === "answered-marked"
+  ).length;
 
   if (loading) {
     return (
@@ -357,11 +426,13 @@ const ExamInterface = () => {
             </div>
             <div className="flex-1 bg-white rounded-lg shadow-sm p-5 min-h-[400px]">
               <div className="flex items-center justify-between mb-6">
-                <button className="bg-[#0D7AA8] text-white px-4 py-2 rounded text-sm hover:bg-[#0a5a7a] transition">
+                <button
+                  onClick={handleOpenComprehensiveModal}
+                  className="bg-[#0D7AA8] text-white px-4 py-2 rounded text-sm hover:bg-[#0a5a7a] transition"
+                >
                   Read Comprehensive Paragraph
                 </button>
               </div>
-
               <div className="mb-8">
                 <h3 className="text-lg font-semibold text-[#1C2B3A] mb-3">
                   Question
@@ -371,14 +442,6 @@ const ExamInterface = () => {
                   {questions[currentQuestion]?.question_text ||
                     "Loading question..."}
                 </p>
-                {questions[currentQuestion]?.comprehension && (
-                  <div className="mb-4 text-sm text-gray-700">
-                    <strong>Comprehension:</strong>
-                    <p className="mt-2">
-                      {questions[currentQuestion]?.comprehension}
-                    </p>
-                  </div>
-                )}
 
                 {questions[currentQuestion]?.tags && (
                   <div className="flex flex-wrap gap-2 mb-4">
@@ -487,7 +550,7 @@ const ExamInterface = () => {
                   Next
                 </button>
                 <button
-                  onClick={handleSubmitExam}
+                  onClick={handleSubmitClick}
                   className="flex-1 bg-red-600 text-white py-3 rounded-md font-medium hover:bg-red-700 transition"
                 >
                   Submit Exam
@@ -514,7 +577,7 @@ const ExamInterface = () => {
               </p>
               <div className="flex items-center gap-2">
                 <p className="font-medium text-[#1C2B3A]">Remaining Time:</p>
-                <span>🕒</span>
+                <Image src="/Timer.png" alt="Timer" width={16} height={16} />
                 <span className="bg-[#0D7AA8] text-white px-3 py-1 rounded-md text-sm font-mono">
                   {formatTime(timeLeft)}
                 </span>
@@ -577,6 +640,24 @@ const ExamInterface = () => {
           </div>
         </div>
       </div>
+
+      {/* Submit Test Modal */}
+      <SubmitTestModal
+        isOpen={showSubmitModal}
+        onClose={handleCancelSubmit}
+        onSubmit={handleConfirmSubmit}
+        remainingTime={formatTime(timeLeft)}
+        totalQuestions={questions.length}
+        answered={answeredCount}
+        marked={markedCount}
+      />
+
+      {/* Comprehensive Modal */}
+      <ComprehensiveModal
+        isOpen={showComprehensiveModal}
+        onClose={handleCloseComprehensiveModal}
+        comprehension={questions[currentQuestion]?.comprehension || ""}
+      />
     </div>
   );
 };

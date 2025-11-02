@@ -4,9 +4,11 @@ import { useRouter } from "next/navigation";
 import Header from "@/app/component/Header";
 import TagPill from "@/app/component/TagPill";
 import { listQuestions, ListQuestionsResponse } from "@/api/exam";
+import { useToast } from "@/context/ToastContext";
 
 const Instructions = () => {
   const router = useRouter();
+  const { addToast } = useToast();
   const [examData, setExamData] = useState<ListQuestionsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -24,17 +26,20 @@ const Instructions = () => {
         const response: ListQuestionsResponse = await listQuestions();
         if (response.success) {
           setExamData(response);
+          addToast("Exam instructions loaded successfully!", "success");
         } else {
           setError("Failed to load exam data");
+          addToast("Failed to load exam data", "error");
         }
       } catch {
         setError("Failed to load exam data");
+        addToast("Failed to load exam data", "error");
       } finally {
         setLoading(false);
       }
     };
     fetchExamData();
-  }, [router]);
+  }, [router, addToast]);
 
   const instructionHTML = examData?.instruction
     ?.replace(/<ol>/g, "<ol class='list-decimal pl-6 space-y-2 text-gray-700'>")
