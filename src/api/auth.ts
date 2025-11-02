@@ -49,7 +49,6 @@ export const verifyOtp = async (
       throw new Error("Invalid response from server");
     }
 
-    // Clear any existing tokens before setting new ones
     if (response.data.success && response.data.login) {
       localStorage.removeItem("access_token");
       localStorage.removeItem("refresh_token");
