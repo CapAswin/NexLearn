@@ -14,6 +14,7 @@ const Instructions = () => {
   useEffect(() => {
     const fetchExamData = async () => {
       try {
+        // Check if user is logged in
         const token = localStorage.getItem("access_token");
         if (!token) {
           router.push("/login");
@@ -65,6 +66,7 @@ const Instructions = () => {
     <div className="min-h-screen bg-[rgba(244,252,255,1)] flex flex-col items-center">
       <Header />
 
+      {/* Main Content */}
       <main className="flex flex-col items-center text-center mt-[7rem] px-4 w-full max-w-3xl">
         <div className="flex justify-center mb-8">
           <div className="bg-[#1c2b3a] text-white rounded-lg flex flex-wrap justify-center divide-x divide-gray-500 overflow-hidden">
@@ -84,7 +86,7 @@ const Instructions = () => {
           </div>
         </div>
 
-        <div className="text-left max-w-2xl text-gray-700 text-[15px] leading-relaxed mb-2">
+        <div className="text-left max-w-2xl text-gray-700 text-[15px] leading-relaxed mb-">
           <p className="font-semibold mb-2">Instructions:</p>
           <div
             className="text-gray-700 leading-relaxed list-decimal space-y-2"
@@ -107,10 +109,7 @@ const Instructions = () => {
           </div>
         )}
 
-        <button
-          onClick={() => router.push("/exam")}
-          className="bg-[#1c2b3a] hover:bg-[#233b50] text-white px-8 py-3 rounded-lg text-lg font-medium transition mb-5"
-        >
+        <button className="bg-[#1c2b3a] hover:bg-[#233b50] text-white px-8 py-3 rounded-lg text-lg font-medium transition mb-5">
           Start Test
         </button>
       </main>
