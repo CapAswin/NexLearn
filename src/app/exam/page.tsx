@@ -52,6 +52,8 @@ const ExamInterface = () => {
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [showComprehensiveModal, setShowComprehensiveModal] = useState(false);
   const [examSubmitted, setExamSubmitted] = useState(false);
+  const [showAlertModal, setShowAlertModal] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleSubmitExam = useCallback(async () => {
@@ -85,8 +87,9 @@ const ExamInterface = () => {
       localStorage.removeItem("exam_start_time");
       localStorage.removeItem("exam_answers");
       localStorage.removeItem("exam_statuses");
+      localStorage.removeItem("access_token");
 
-      router.push("/result");
+      router.push("/login");
     } catch (error) {
       console.error("Error submitting exam:", error);
       setExamSubmitted(false);
@@ -230,7 +233,8 @@ const ExamInterface = () => {
         ) {
           e.preventDefault();
           e.stopImmediatePropagation();
-          alert("Page refresh is not allowed during the exam.");
+          setShowAlertModal(true);
+          setAlertMessage("Page refresh is not allowed during the exam.");
         }
       }
     };
@@ -239,14 +243,16 @@ const ExamInterface = () => {
       if (examStarted) {
         e.preventDefault();
         window.history.pushState(null, "", window.location.href);
-        alert("Going back is not allowed during the exam.");
+        setShowAlertModal(true);
+        setAlertMessage("Going back is not allowed during the exam.");
       }
     };
 
     const handleContextMenu = (e: MouseEvent) => {
       if (examStarted) {
         e.preventDefault();
-        alert("Right-click is disabled during the exam.");
+        setShowAlertModal(true);
+        setAlertMessage("Right-click is disabled during the exam.");
       }
     };
 
@@ -279,6 +285,7 @@ const ExamInterface = () => {
     setExamStarted(true);
     localStorage.setItem("exam_start_time", Date.now().toString());
     localStorage.setItem("exam_time_left", timeLeft.toString());
+    setQuestionStatuses((prev) => ({ ...prev, [0]: "visited" }));
   };
 
   const handleAnswerSelect = (optionId: number) => {
@@ -302,10 +309,23 @@ const ExamInterface = () => {
   const handleNext = () => {
     if (!examStarted) return;
     if (currentQuestion < questions.length - 1) {
-      setCurrentQuestion((prev) => {
-        const next = prev + 1;
-        setSelectedAnswer(answers[next] ?? null);
-        return next;
+      const next = currentQuestion + 1;
+      setSelectedAnswer(answers[next] ?? null);
+      setCurrentQuestion(next);
+      setQuestionStatuses((prev) => {
+        const newStatuses = { ...prev };
+        // For new current
+        if (!newStatuses[next] || newStatuses[next] === "not-attended") {
+          newStatuses[next] = "visited";
+        }
+        // For old current
+        if (
+          !newStatuses[currentQuestion] ||
+          newStatuses[currentQuestion] === "not-attended"
+        ) {
+          newStatuses[currentQuestion] = "visited";
+        }
+        return newStatuses;
       });
     }
   };
@@ -605,8 +625,12 @@ const ExamInterface = () => {
                 Attended
               </div>
               <div className="flex items-center gap-2">
-                <span className="w-4 h-4 bg-[#E14E4E] rounded-sm"></span> Not
-                Attended
+                <span className="w-4 h-4 bg-white border border-[#CECECE] rounded-sm"></span>{" "}
+                Not Attended
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-4 h-4 bg-[#EE3535] rounded-sm"></span>{" "}
+                Visited
               </div>
               <div className="flex items-center gap-2">
                 <span className="w-4 h-4 bg-[#7E1FA4] rounded-sm"></span> Marked
@@ -638,6 +662,22 @@ const ExamInterface = () => {
         onClose={handleCloseComprehensiveModal}
         comprehension={questions[currentQuestion]?.comprehension || ""}
       />
+
+      {/* Alert Modal */}
+      {showAlertModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full mx-4">
+            <h2 className="text-lg font-semibold text-[#1C2B3A] mb-4">Alert</h2>
+            <p className="text-[#1C2B3A] mb-6">{alertMessage}</p>
+            <button
+              onClick={() => setShowAlertModal(false)}
+              className="bg-[#0D7AA8] text-white px-4 py-2 rounded-md hover:bg-[#0a5a7a] transition"
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
