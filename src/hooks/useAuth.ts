@@ -7,7 +7,6 @@ export const useAuth = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Initialize user from localStorage after component mounts
     const initializeUser = () => {
       if (typeof window !== "undefined") {
         const token = localStorage.getItem("access_token");
