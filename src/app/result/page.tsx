@@ -1,11 +1,55 @@
 "use client";
 import Header from "@/app/component/Header";
 import Image from "next/image";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import questionsVector from "@/assets/QuestionsVector.png";
 import correctAnswerIcon from "@/assets/correct-answer.png";
 import wrongAnswerIcon from "@/assets/wrong-answe.png";
+import { getExamResults, ExamResultResponse } from "@/api/exam";
 
 const ResultPage = () => {
+  const router = useRouter();
+  const [result, setResult] = useState<ExamResultResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchResults = async () => {
+      try {
+        const data = await getExamResults();
+        setResult(data);
+      } catch (err) {
+        setError("Failed to load results");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchResults();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[rgba(244,252,255,1)] flex flex-col items-center">
+        <Header />
+        <main className="flex flex-col items-center text-center mt-[7rem] px-4 w-full max-w-3xl">
+          <div className="text-lg">Loading results...</div>
+        </main>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-[rgba(244,252,255,1)] flex flex-col items-center">
+        <Header />
+        <main className="flex flex-col items-center text-center mt-[7rem] px-4 w-full max-w-3xl">
+          <div className="text-red-500 text-lg">{error}</div>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[rgba(244,252,255,1)] flex flex-col items-center">
       <Header />
@@ -17,7 +61,7 @@ const ResultPage = () => {
             Marks Obtained:
           </p>
           <h1 className="font-['Inter'] font-medium text-[68px] leading-none">
-            100 / 100
+            {result?.score || 0} / {result?.total_marks || 0}
           </h1>
         </div>
 
@@ -43,7 +87,9 @@ const ResultPage = () => {
                 </p>
               </div>
               <span className="text-[18px] leading-none text-[#1C2B3A] font-semibold">
-                100
+                {(result?.correct_answers || 0) +
+                  (result?.wrong_answers || 0) +
+                  (result?.not_attended || 0)}
               </span>
             </div>
 
@@ -63,7 +109,7 @@ const ResultPage = () => {
                 </p>
               </div>
               <span className="text-[18px] leading-none text-[#1C2B3A] font-semibold">
-                003
+                {result?.correct_answers || 0}
               </span>
             </div>
             <div className="flex justify-between items-center">
@@ -82,7 +128,7 @@ const ResultPage = () => {
                 </p>
               </div>
               <span className="text-[18px] leading-none text-[#1C2B3A] font-semibold">
-                001
+                {result?.wrong_answers || 0}
               </span>
             </div>
             <div className="flex justify-between items-center">
@@ -101,7 +147,7 @@ const ResultPage = () => {
                 </p>
               </div>
               <span className="text-[18px] leading-none text-[#1C2B3A] font-semibold">
-                096
+                {result?.not_attended || 0}
               </span>
             </div>
           </div>

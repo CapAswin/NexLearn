@@ -36,7 +36,9 @@ export interface ListQuestionsResponse {
 export interface Question {
   id: number;
   question: string;
+  question_text?: string;
   options: Option[];
+  tags?: string[];
 }
 
 export interface Option {

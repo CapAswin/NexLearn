@@ -109,7 +109,12 @@ const Instructions = () => {
           </div>
         )}
 
-        <button className="bg-[#1c2b3a] hover:bg-[#233b50] text-white px-8 py-3 rounded-lg text-lg font-medium transition mb-5">
+        <button
+          className="bg-[#1c2b3a] hover:bg-[#233b50] text-white px-8 py-3 rounded-lg text-lg font-medium transition mb-5"
+          onClick={() => {
+            router.push("/exam");
+          }}
+        >
           Start Test
         </button>
       </main>
